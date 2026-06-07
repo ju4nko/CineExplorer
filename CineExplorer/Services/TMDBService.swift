@@ -5,17 +5,23 @@
 //  Created by Juanjo on 07/06/2026.
 //
 import Foundation
-import Combine
 
-class TMDBService: ObservableObject {
-    
-    private let apiKey = "088c5a683f8a5bc0a55090bd59c6e8fc"
+@Observable
+class TMDBService: MovieServicing {
+
+    private let apiKey: String = {
+        guard let key = Bundle.main.object(forInfoDictionaryKey: "TMDB_API_KEY") as? String,
+              !key.isEmpty else {
+            fatalError("TMDB_API_KEY no está configurada en Info.plist")
+        }
+        return key
+    }()
     private let baseURL = "https://api.themoviedb.org/3"
-    
-    @Published var movies: [Movie] = []
-    @Published var genres: [Genre] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+
+    var movies: [Movie] = []
+    var genres: [Genre] = []
+    var isLoading = false
+    var errorMessage: String?
     
     func fetchPopular() async {
         await fetchMovies(endpoint: "/movie/popular")

@@ -8,10 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var service = TMDBService()
+    @State private var service: any MovieServicing
     @State private var searchText = ""
     @State private var selectedTab = 0
     @State private var selectedGenreId: Int? = nil
+
+    init(service: any MovieServicing = TMDBService()) {
+        _service = State(initialValue: service)
+    }
 
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
@@ -108,6 +112,14 @@ struct ContentView: View {
     }
 }
 
-#Preview {
-    ContentView()
+#Preview("Con datos") {
+    ContentView(service: MockMovieService())
+}
+
+#Preview("Cargando") {
+    ContentView(service: MockMovieService(movies: [], isLoading: true))
+}
+
+#Preview("Error") {
+    ContentView(service: MockMovieService(movies: [], errorMessage: "Error de red"))
 }
