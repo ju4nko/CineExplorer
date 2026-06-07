@@ -27,6 +27,10 @@ class TMDBService: MovieServicing {
         await fetchMovies(endpoint: "/movie/popular")
     }
     
+    func fetchTopRated() async {
+        await fetchMovies(endpoint: "/movie/top_rated")
+    }
+    
     func fetchNowPlaying() async {
         await fetchMovies(endpoint: "/movie/now_playing")
     }
@@ -45,19 +49,19 @@ class TMDBService: MovieServicing {
         ]
         guard let url = components.url else { return }
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let data = try await performRequest(url: url)
             let decoded = try JSONDecoder().decode(GenreResponse.self, from: data)
             genres = decoded.genres
         } catch {
             print("❌ Error géneros: \(error)")
         }
     }
-    
+
     @MainActor
     private func fetchMovies(endpoint: String, extraParams: String = "") async {
         isLoading = true
         errorMessage = nil
-        
+
         var components = URLComponents(string: "\(baseURL)\(endpoint)")!
         var queryItems = [
             URLQueryItem(name: "api_key", value: apiKey),
@@ -71,24 +75,46 @@ class TMDBService: MovieServicing {
             }
         }
         components.queryItems = queryItems
-        
+
         guard let url = components.url else {
             errorMessage = "URL inválida"
             isLoading = false
             return
         }
-        
-        print("🔗 URL: \(url)") // Debug — bórralo cuando funcione
-        
+
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let data = try await performRequest(url: url)
             let decoded = try JSONDecoder().decode(MovieResponse.self, from: data)
             movies = decoded.results
         } catch {
-            print("❌ Error: \(error)") // Muestra el error exacto en consola
+            print("❌ Error: \(error)")
             errorMessage = "Error al cargar: \(error.localizedDescription)"
         }
-        
+
         isLoading = false
+    }
+
+    private func performRequest(url: URL) async throws -> Data {
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            let serverMessage = (try? JSONDecoder().decode(TMDBErrorResponse.self, from: data))?.statusMessage
+            let message = serverMessage ?? "Error HTTP \(http.statusCode)"
+            throw NSError(
+                domain: "TMDBService",
+                code: http.statusCode,
+                userInfo: [NSLocalizedDescriptionKey: message]
+            )
+        }
+        return data
+    }
+}
+
+private struct TMDBErrorResponse: Decodable {
+    let statusMessage: String
+    enum CodingKeys: String, CodingKey {
+        case statusMessage = "status_message"
     }
 }

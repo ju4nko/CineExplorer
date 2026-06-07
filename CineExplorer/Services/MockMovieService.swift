@@ -27,6 +27,7 @@ final class MockMovieService: MovieServicing {
 
     func fetchPopular() async {}
     func fetchNowPlaying() async {}
+    func fetchTopRated() async {}
     func searchMovies(query: String) async {}
     func fetchGenres() async {}
 

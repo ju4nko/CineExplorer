@@ -7,23 +7,26 @@
 
 import SwiftUI
 
+
 struct ContentView: View {
     @State private var service: any MovieServicing
     @State private var searchText = ""
-    @State private var selectedTab = 0
+    @State private var movieCategory: MovieCategory = .popular
     @State private var selectedGenreId: Int? = nil
-
+    
+    
+    
     init(service: any MovieServicing = TMDBService()) {
         _service = State(initialValue: service)
     }
-
+    
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
-
+    
     private var filteredMovies: [Movie] {
         guard let genreId = selectedGenreId else { return service.movies }
         return service.movies.filter { $0.genreIds?.contains(genreId) ?? false }
     }
-
+    
     private var selectedGenreName: String {
         guard let genreId = selectedGenreId,
               let genre = service.genres.first(where: { $0.id == genreId }) else {
@@ -31,18 +34,29 @@ struct ContentView: View {
         }
         return genre.name
     }
-
+    
+    private func loadCurrentTab() async {
+        
+        switch  movieCategory {
+        case .popular: await service.fetchPopular()
+        case .nowPlaying: await service.fetchNowPlaying()
+        case .topRated: await service.fetchTopRated()
+        }
+        
+    }
+    
     var body: some View {
         NavigationStack{
             VStack{
                 // Tabs
-                Picker("Categoría", selection: $selectedTab) {
-                    Text("Populares").tag(0)
-                    Text("En Cartelera").tag(1)
+                Picker("Categoría", selection: $movieCategory) {
+                    ForEach(MovieCategory.allCases, id: \.self) { categoria in
+                        Text(categoria.displayName).tag(categoria)
+                    }
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
-
+                
                 // Filtro de género
                 Menu {
                     Button("Todos los géneros") { selectedGenreId = nil }
@@ -62,7 +76,7 @@ struct ContentView: View {
                     .clipShape(Capsule())
                 }
                 .padding(.horizontal)
-
+                
                 if service.isLoading {
                     ProgressView("Cargando...").padding()
                 } else if let error = service.errorMessage {
@@ -82,6 +96,8 @@ struct ContentView: View {
                             }
                         }
                         .padding()
+                    }.refreshable {
+                        await loadCurrentTab()
                     }
                 }
             }
@@ -93,20 +109,18 @@ struct ContentView: View {
             .onChange(of: searchText) { _, newValue in
                 if newValue.isEmpty {
                     Task {
-                        if selectedTab == 0 { await service.fetchPopular() }
-                        else { await service.fetchNowPlaying() }
+                        await loadCurrentTab()
                     }
                 }
             }
-            .onChange(of: selectedTab) {
+            .onChange(of: movieCategory) {
                 Task {
-                    if selectedTab == 0 { await service.fetchPopular() }
-                    else { await service.fetchNowPlaying() }
+                    await loadCurrentTab()
                 }
             }
             .task {
                 await service.fetchGenres()
-                await service.fetchPopular()
+                await loadCurrentTab()
             }
         }
     }

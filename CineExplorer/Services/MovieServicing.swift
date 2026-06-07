@@ -17,4 +17,5 @@ protocol MovieServicing: AnyObject, Observable {
     func fetchNowPlaying() async
     func searchMovies(query: String) async
     func fetchGenres() async
+    func fetchTopRated() async
 }
