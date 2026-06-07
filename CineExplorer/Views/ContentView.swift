@@ -89,8 +89,9 @@ struct ContentView: View {
                     ScrollView{
                         LazyVGrid(columns: columns, spacing: 16) {
                             ForEach(filteredMovies) { movie in
-                                NavigationLink(destination: MovieDetailView(movie: movie)) {
-                                    MovieCardView(movie: movie)
+                                let nombres = movie.genreNames(in:service.genres)
+                                NavigationLink(destination: MovieDetailView(movie: movie, genreNames: nombres)){
+                                    MovieCardView(movie: movie,genreNames: nombres)
                                 }
                                 .buttonStyle(.plain)
                             }

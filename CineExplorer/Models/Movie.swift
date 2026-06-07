@@ -15,6 +15,7 @@ struct Movie: Identifiable, Codable {
     let releaseDate: String?  // <- opcional por si viene vacío
     let genreIds: [Int]?
 
+
     enum CodingKeys: String, CodingKey {
         case id, title, overview
         case posterPath   = "poster_path"
@@ -44,4 +45,11 @@ struct Genre: Identifiable, Codable, Hashable {
 
 struct GenreResponse: Codable {
     let genres: [Genre]
+}
+
+extension Movie {
+    func genreNames(in genres: [Genre]) -> [String] {
+        (genreIds ?? []).compactMap { id in genres.first(where: { $0.id == id })?.name }
+
+    }
 }

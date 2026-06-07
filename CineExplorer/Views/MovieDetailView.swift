@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MovieDetailView: View {
     let movie: Movie
+    let genreNames: [String]
     
     var body: some View {
         ScrollView {
@@ -29,6 +30,21 @@ struct MovieDetailView: View {
                             .foregroundColor(.yellow)
                         Text("· \(movie.year)").foregroundColor(.secondary)
                     }
+                    
+                    if !genreNames.isEmpty{
+                        HStack{
+                            ForEach(genreNames, id: \.self){ genero in
+                                Text(genero)
+                                    .font(.caption)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(Color(.secondarySystemBackground))
+                                    .clipShape(Capsule())
+                            }
+                        }
+                        
+                    }
+                    
                     
                     Divider()
                     
@@ -55,6 +71,7 @@ struct MovieDetailView: View {
             voteAverage: 7.8,
             releaseDate: "2026-01-15",
             genreIds: nil
-        )
+        ),
+        genreNames: ["Acción", "Ciencia Ficción", "Fantasía"]
     )
 }

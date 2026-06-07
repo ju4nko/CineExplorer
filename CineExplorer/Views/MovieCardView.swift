@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MovieCardView: View {
     let movie: Movie
+    let genreNames: [String]
     
     var body: some View {
         VStack(alignment:.leading){
@@ -32,6 +33,21 @@ struct MovieCardView: View {
                 Text(movie.year).foregroundColor(.secondary)
             }
             .font(.subheadline)
+            
+            if !genreNames.isEmpty{
+                HStack{
+                    ForEach(genreNames.prefix(2), id: \.self){ genero in
+                        Text(genero)
+                            .font(.caption)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(Capsule())
+                    }
+                }
+                
+            }
+            
         }
         .padding(.bottom, 8)
     }
@@ -46,7 +62,7 @@ struct MovieCardView: View {
         voteAverage: 7.5,
         releaseDate: "2026-01-01",
         genreIds: nil
-    ))
+    ),genreNames: ["Action", "Comedy", "Fantasy"])
 }
 
 
